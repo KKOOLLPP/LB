@@ -1,51 +1,91 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-#define N 100 // Спросите почему одномерный? Потомучто malloc читает массив как одномерный двух мерного нет 
-int main() {
-    int i, j, r, c;
-    int *a, *b, *f;
-
-   // выделение памяти под массив 
-    a = (int*)malloc(N * N * sizeof(int));
-    b = (int*)malloc(N * N * sizeof(int));
-    f = (int*)malloc(N * N * sizeof(int));
-
-    srand(time(NULL));
-    clock_t start = clock(); // начло отсчета 
-
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            a[i * N + j] = rand() % 10; // [i * N + J] - по формеле как константа 
-            b[i * N + j] = rand() % 10;
-            f[i * N + j] = 0;
+#include <locale.h>
+void createMatrix(int** matrix, int peak) {
+    for (int i = 0; i < peak; i++) {
+        for (int j = i + 1; j < peak; j++) {
+            int value = rand() % 2;
+            matrix[i][j] = value;
+            matrix[j][i] = value;
         }
+        matrix[i][i] = 0;
     }
+}
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-            c = 0;
-            for (r = 0; r < N; r++) {
-                c += a[i * N + r] * b[r * N + j];
-            }
-            f[i * N + j] = c;
-        }
-    }
-    clock_t end = clock(); // куонец отсчета 
-    double time = (double)(end - start) / CLOCKS_PER_SEC; // CLOCKS_PER_SEC - константа показывает сколько тиков в секунду  
-    printf("10 el:\n"); // мматрица 10 на 10, в задание есть 10000 на 10000, считать будешь вечность 
-    for (i = 0; i < 10; i++) {
-        for (j = 0; j < 10; j++) {
-            printf("%d ", f[i * N + j]);
+void printMatrix(int** matrix, int peak) {
+    printf("Матрица смежности:\n");
+    for (int i = 0; i < peak; i++) {
+        for (int j = 0; j < peak; j++) {
+            printf("%d ", matrix[i][j]);
         }
         printf("\n");
     }
-    printf("time: %.10f", time);
+    printf("\n");
+}
 
-    free(a);
-    free(b);
-    free(f);
+void makeList(int** matrix, int peak) {
+    printf("Список смежности:\n");
+    for (int i = 0; i < peak; i++) {
+        printf("Вершина %d: ", i + 1);
+        int near = 0;
+        for (int j = 0; j < peak; j++) {
+            if (matrix[i][j] == 1 && i != j) {
+                printf("%d ", j + 1);
+                near = 1;
+            }
+        }
+        if (!near) {
+            printf("Нет соседей");
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 
+void freem(int** matrix, int peak) {
+    for (int i = 0; i < peak; i++) {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+int main() {
+    setlocale(LC_ALL, "ru");
+    srand(time(NULL));
+    int peak1, peak2;
+
+    printf("Введите количество вершин для графа G1: ");
+    scanf("%d", &peak1);
+    printf("Введите количество вершин для графа G2: ");
+    scanf("%d", &peak2);
+    if (peak1 <= 0 || peak2 <= 0) {
+        printf("Ошибка: количество вершин должно быть натуральным числом.\n");
+        return 1;
+    }
+
+    int** M1 = (int**)malloc(peak1 * sizeof(int*));
+    for (int i = 0; i < peak1; i++) {
+        M1[i] = (int*)malloc(peak1 * sizeof(int));
+    }
+
+    int** M2 = (int**)malloc(peak2 * sizeof(int*));
+    for (int i = 0; i < peak2; i++) {
+        M2[i] = (int*)malloc(peak2 * sizeof(int));
+    }
+
+    printf("\nГраф G1\n");
+    createMatrix(M1, peak1);
+    printMatrix(M1, peak1);
+    makeList(M1, peak1);
+
+    printf("Граф G2\n");
+    createMatrix(M2, peak2);
+    printMatrix(M2, peak2);
+    makeList(M2, peak2);
+
+    freem(M1, peak1);
+    freem(M2, peak2);
     return 0;
 }
